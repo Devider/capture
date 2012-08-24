@@ -8,17 +8,49 @@
 #include <sys/mman.h>
 #include <sys/ioctl.h>
 #include <sys/stat.h>
-#include "vc-test.h"
+#include <gtk/gtk.h>
+#include <assert.h>
+#include "types.h"
 
-static char * dev_name = "/dev/video0";
+static void init_mmap(void);
+static void errno_exit(const char *s);
+void write_JPEG_file(char * filename, int image_width, int image_height, rgb_ptr image_buffer, int quality);
+
+static char * dev_name = NULL;
 static int fd = -1;
-struct buffer * buffers = NULL;
+static buffer * buffers = NULL;
 static unsigned int n_buffers = 0;
+static int weigth = 0;
+static int heigth = 0;
 
-struct buffer {
-	void * start;
-	size_t length;
-};
+static rgb_ptr yvy2_to_rgb24(const rgb_ptr buffer, int length) {
+	int newsize = length / 2 * 3;
+	rgb_ptr result = malloc(newsize);
+	if (result == NULL) {
+		printf("FAILED!!");
+		fflush(stdout);
+	}
+	int i = 0,j = 0;
+	while ((i + 2) < length) {
+		result[j] = buffer[i];
+		result[j + 1] = buffer[i];
+		result[j + 2] = buffer[i];
+		j+=3;
+		i+=2;
+//		printf("oldsize = %d, newsize = %d, i = %d, j = %d\n", length, newsize, i, j);
+//		fflush(stdout);
+	}
+	return result;
+}
+
+static void process_image(const void * p, size_t lenght) {
+	static int i = 0;
+	if (++i == 50) {
+		rgb_ptr buff = yvy2_to_rgb24(p, lenght);
+		write_JPEG_file("file.jpg", weigth, heigth, buff , 100);
+		free(buff);
+	}
+}
 
 static int xioctl(int fd, int request, void * arg) {
 	int r;
@@ -28,28 +60,6 @@ static int xioctl(int fd, int request, void * arg) {
 	while (-1 == r && EINTR == errno);
 
 	return r;
-}
-
-int main(int argc, char* args[]) {
-
-	printf("Opening...");
-	open_device();
-	printf("   initing...");
-	init_device();
-	printf("    starting...");
-	start_capturing();
-	printf("    looping...");
-	mainloop();
-	printf("    stoping...");
-	stop_capturing();
-	printf("    uniniting...");
-	uninit_device();
-	printf("    closing...");
-	close_device();
-
-	exit(EXIT_SUCCESS);
-
-	return 0;
 }
 
 static void close_device(void) {
@@ -122,8 +132,8 @@ static void init_device(void) {
 	CLEAR(fmt);
 
 	fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-	fmt.fmt.pix.width = 640;
-	fmt.fmt.pix.height = 480;
+	fmt.fmt.pix.width = weigth;
+	fmt.fmt.pix.height = heigth;
 	fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV;
 	fmt.fmt.pix.field = V4L2_FIELD_INTERLACED;
 
@@ -149,17 +159,8 @@ static void errno_exit(const char *s) {
 	exit(EXIT_FAILURE);
 }
 
-static void process_image(const void * p, size_t lenght) {
-	//fputc(lenght, stdout);
-	int i, *pointer = p;
-	//while (pointer[i++]);
-	printf("Size = %d, value = %d \n", lenght, *pointer, stdout);
-	//fflush(stdout);
-}
-
 static int read_frame() {
 	struct v4l2_buffer buf;
-	unsigned int i;
 
 	CLEAR(buf);
 
@@ -178,13 +179,13 @@ static int read_frame() {
 
 		default:
 			errno_exit("VIDIOC_DQBUF");
+			break;
 		}
 	}
 
 	assert(buf.index < n_buffers);
 
 	process_image(buffers[buf.index].start, buffers[buf.index].length);
-
 	if (-1 == xioctl(fd, VIDIOC_QBUF, &buf))
 		errno_exit("VIDIOC_QBUF");
 
@@ -222,11 +223,8 @@ static void mainloop(void) {
 				fprintf(stderr, "select timeout\n");
 				exit(EXIT_FAILURE);
 			}
-
 			if (read_frame())
 				break;
-
-			/* EAGAIN - continue select loop. */
 		}
 	}
 }
@@ -238,7 +236,6 @@ static void stop_capturing(void) {
 
 	if (-1 == xioctl(fd, VIDIOC_STREAMOFF, &type))
 		errno_exit("VIDIOC_STREAMOFF");
-
 }
 
 static void start_capturing(void) {
@@ -308,6 +305,7 @@ static void init_mmap(void) {
 			errno_exit("VIDIOC_QUERYBUF");
 
 		buffers[n_buffers].length = buf.length;
+
 		buffers[n_buffers].start = mmap(NULL /* start anywhere */, buf.length,
 				PROT_READ | PROT_WRITE /* required */,
 				MAP_SHARED /* recommended */, fd, buf.m.offset);
@@ -338,4 +336,18 @@ static void open_device(void) {
 				strerror(errno));
 		exit(EXIT_FAILURE);
 	}
+}
+
+int startcapture(char* dev, int w, int h) {
+	dev_name = dev;
+	weigth = w;
+	heigth = h;
+	open_device();
+	init_device();
+	start_capturing();
+	mainloop();
+	stop_capturing();
+	uninit_device();
+	close_device();
+	return 0;
 }
