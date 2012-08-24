@@ -22,8 +22,12 @@ static buffer * buffers = NULL;
 static unsigned int n_buffers = 0;
 static int weigth = 0;
 static int heigth = 0;
+static const int BPP_YUY2 = 2;
+static const int BPP_RGB24 = 3;
 
-static rgb_ptr yvy2_to_rgb24(const rgb_ptr buffer, int length) {
+static rgb_ptr yvy2_to_rgb24(const buffer* buf) {
+	int length = buf->length;
+	rgb_ptr b = buf->start;
 	int newsize = length / 2 * 3;
 	rgb_ptr result = malloc(newsize);
 	if (result == NULL) {
@@ -32,21 +36,19 @@ static rgb_ptr yvy2_to_rgb24(const rgb_ptr buffer, int length) {
 	}
 	int i = 0,j = 0;
 	while ((i + 2) < length) {
-		result[j] = buffer[i];
-		result[j + 1] = buffer[i];
-		result[j + 2] = buffer[i];
-		j+=3;
-		i+=2;
-//		printf("oldsize = %d, newsize = %d, i = %d, j = %d\n", length, newsize, i, j);
-//		fflush(stdout);
+		result[j] = b[i];
+		result[j + 1] = b[i];
+		result[j + 2] = b[i];
+		j+=BPP_RGB24;
+		i+=BPP_YUY2;
 	}
 	return result;
 }
 
-static void process_image(const void * p, size_t lenght) {
+static void process_image(const buffer * buf) {
 	static int i = 0;
 	if (++i == 50) {
-		rgb_ptr buff = yvy2_to_rgb24(p, lenght);
+		rgb_ptr buff = yvy2_to_rgb24(buf);
 		write_JPEG_file("file.jpg", weigth, heigth, buff , 100);
 		free(buff);
 	}
@@ -185,7 +187,7 @@ static int read_frame() {
 
 	assert(buf.index < n_buffers);
 
-	process_image(buffers[buf.index].start, buffers[buf.index].length);
+	process_image(&buffers[buf.index]);
 	if (-1 == xioctl(fd, VIDIOC_QBUF, &buf))
 		errno_exit("VIDIOC_QBUF");
 
