@@ -7,8 +7,10 @@
 
 #ifndef TYPES_H_
 #define TYPES_H_
+
 #define rgb_ptr unsigned char*
 #define CLEAR(x) memset (&(x), 0, sizeof (x))
+#define HISTORY_LENGHT	2
 
 typedef struct _buffer {
 	void * start;
