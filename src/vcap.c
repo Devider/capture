@@ -14,8 +14,6 @@
 
 static void init_mmap(void);
 static void errno_exit(const char *s);
-void write_JPEG_file(char * filename, int image_width, int image_height, rgb_ptr image_buffer, int quality);
-
 static char * dev_name = NULL;
 static int fd = -1;
 static buffer * buffers = NULL;
@@ -24,18 +22,20 @@ static int weigth = 0;
 static int heigth = 0;
 static const int BPP_YUY2 = 2;
 static const int BPP_RGB24 = 3;
+static gboolean capturing = FALSE;
+static void* buffer_copy = NULL;
+static int buffer_copy_lenght = NULL;
 
-static rgb_ptr yvy2_to_rgb24(const buffer* buf) {
-	int length = buf->length;
-	rgb_ptr b = buf->start;
-	int newsize = length / 2 * 3;
+static rgb_ptr yuy2_to_rgb24() {
+	int newsize = buffer_copy_lenght / 2 * 3;
 	rgb_ptr result = malloc(newsize);
 	if (result == NULL) {
 		printf("FAILED!!");
 		fflush(stdout);
 	}
 	int i = 0,j = 0;
-	while ((i + 2) < length) {
+	rgb_ptr b = buffer_copy;
+	while ((i + 2) < buffer_copy_lenght) {
 		result[j] = b[i];
 		result[j + 1] = b[i];
 		result[j + 2] = b[i];
@@ -45,12 +45,21 @@ static rgb_ptr yvy2_to_rgb24(const buffer* buf) {
 	return result;
 }
 
+rgb_ptr get_image(){
+	capturing = TRUE;
+	rgb_ptr result = yuy2_to_rgb24();
+	capturing = FALSE;
+	return result;
+}
+
+
 static void process_image(const buffer * buf) {
 	static int i = 0;
-	if (++i == 50) {
-		rgb_ptr buff = yvy2_to_rgb24(buf);
-		write_JPEG_file("file.jpg", weigth, heigth, buff , 100);
-		free(buff);
+	if (!capturing)
+		memcpy(buffer_copy, buf->start, buf->length);
+	if (i < 100){
+		printf("working...\n");
+		fflush(stdout);
 	}
 }
 
@@ -79,6 +88,8 @@ static void uninit_device(void) {
 			errno_exit("munmap");
 
 	free(buffers);
+	if (buffer_copy)
+		free(buffer_copy);
 }
 
 static void init_device(void) {
@@ -197,9 +208,7 @@ static int read_frame() {
 static void mainloop(void) {
 	unsigned int count;
 
-	count = 100;
-
-	while (count-- > 0) {
+	while (TRUE) {
 		for (;;) {
 			fd_set fds;
 			struct timeval tv;
@@ -266,6 +275,8 @@ static void start_capturing(void) {
 static void init_mmap(void) {
 	struct v4l2_requestbuffers req;
 
+	buffer_copy_lenght = weigth * heigth * BPP_YUY2;
+	buffer_copy = malloc(buffer_copy_lenght);
 	CLEAR(req);
 
 	req.count = 4;
@@ -340,10 +351,11 @@ static void open_device(void) {
 	}
 }
 
-int startcapture(char* dev, int w, int h) {
-	dev_name = dev;
-	weigth = w;
-	heigth = h;
+void* startcapture(void* dev) {
+	capture* d = dev;
+	dev_name = d->device;
+	weigth = d->weigth;
+	heigth = d->height;
 	open_device();
 	init_device();
 	start_capturing();

@@ -4,7 +4,7 @@
 #include "types.h"
 
 
-void write_JPEG_file(char * filename, int image_width, int image_height, rgb_ptr image_buffer, int quality) {
+void write_JPEG_file(char * filename, int image_width, int image_height, const rgb_ptr image_buffer, int quality) {
 
 	struct jpeg_compress_struct cinfo;
 
@@ -46,8 +46,6 @@ void write_JPEG_file(char * filename, int image_width, int image_height, rgb_ptr
 	fclose(outfile);
 
 	jpeg_destroy_compress(&cinfo);
-
-	free(image_buffer);
 }
 
 typedef struct error_mgr {

@@ -14,4 +14,14 @@ typedef struct _buffer {
 	void * start;
 	size_t length;
 } buffer;
+
+typedef struct _capture {
+	char* device;
+	int weigth;
+	int height;
+} capture;
+
+void* startcapture(void* dev);
+
+
 #endif
