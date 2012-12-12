@@ -1,4 +1,5 @@
 #include <gtk/gtk.h>
+#include <stddef.h>
 #include "types.h"
 
 static GtkWidget *window;
@@ -8,20 +9,24 @@ static GtkImage *image_diff;
 static rgb_ptr old_buf = NULL;
 static rgb_ptr trash_buf = NULL;
 
+int abs(int);
+void free(void*);
+rgb_ptr get_image();
+
 static void get_diff(rgb_ptr buf_new, rgb_ptr buf_old, int length) {
 	if((!buf_new)||(!buf_old)){
 		return;
 	}
 	int i = 0;
 	while ((i + 3) < length) {
-		int diff = abs(*(buf_new + i) - *(buf_old + i));
+		int diff = abs(buf_new[i] - buf_old[i]);
 		if (diff > 15)
 			buf_old[i + 2] = 255;
 		i+=3;
 	}
 }
 
-static int refresh_image() {
+static void refresh_image() {
 	if (trash_buf)
 		free(trash_buf);
 	rgb_ptr buf = get_image();
@@ -76,17 +81,17 @@ void show_main_form(int argc, char *argv[]) {
 
 	gtk_grid_attach(GTK_GRID (grid), object, 1, 0, 1, 1);
 
-	image_stream = gtk_image_new_from_file(
-			"/home/kirill/workspace/jpegtest/file0.jpg");
+	gchar* file_name = "/home/kirill/workspace/jpegtest/file0.jpg";
+	image_stream = (GtkImage*) gtk_image_new_from_file(file_name);
 
-	gtk_grid_attach(GTK_GRID (grid), image_stream, 0, 1, 1, 1);
+	gtk_grid_attach(GTK_GRID (grid), (GtkWidget*)image_stream, 0, 1, 1, 1);
 
-	image_diff = gtk_image_new_from_file(
-			"/home/kirill/workspace/jpegtest/file1.jpg");
+	file_name = "/home/kirill/workspace/jpegtest/file1.jpg";
+	image_diff = (GtkImage*) gtk_image_new_from_file(file_name);
 
-	gtk_grid_attach(GTK_GRID (grid), image_diff, 1, 1, 1, 1);
+	gtk_grid_attach(GTK_GRID (grid), (GtkWidget*)image_diff, 1, 1, 1, 1);
 
-	g_timeout_add(1000 / 20 , (GSourceFunc) time_handler, NULL );
+	g_timeout_add(1000 / 30 , (GSourceFunc) time_handler, NULL );
 
 	gtk_widget_show_all(window);
 

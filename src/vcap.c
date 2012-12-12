@@ -18,13 +18,69 @@ static char * dev_name = NULL;
 static int fd = -1;
 static buffer * buffers = NULL;
 static unsigned int n_buffers = 0;
-static int weigth = 0;
+static int wigth = 0;
 static int heigth = 0;
-static const int BPP_YUY2 = 2;
+static const int BPP_YUY2 = 4;
 static const int BPP_RGB24 = 3;
 static gboolean capturing = FALSE;
 static void* buffer_copy = NULL;
-static int buffer_copy_lenght = NULL;
+static int buffer_copy_lenght = 0;
+
+char clip(int x){
+	//return x > 255 ? x : x < 0 ? 0 : x;
+	if (x>255)
+		return 255;
+	if (x<0)
+		return 0;
+	return x;
+}
+
+static void yuv2rgb(int y, int u, int v, char *r, char *g, char *b) {
+	int c = y - 16, d = u - 128, e = v - 128;
+
+	*r = clip(1.164383 * c + 1.596027 * e);
+	*g = clip(1.164383 * c - (0.391762 * d) - (0.812968 * e));
+	*b = clip(1.164383 * c + 2.017232 * d);
+
+}
+
+void yuyv_to_rgb(rgb_ptr buffer_yuyv, rgb_ptr buffer_rgb, int width, int height)
+{
+	rgb_ptr pixel_16;   // for YUYV
+	rgb_ptr pixel_24;// for RGB
+	int y0, u0, v0, y1;
+	char r, g, b;
+	if ( buffer_yuyv == NULL || buffer_rgb == NULL)
+	return;
+
+	pixel_16 = (rgb_ptr)buffer_yuyv;//width * height * 2
+	pixel_24 = buffer_rgb;//width * height * 3
+
+	int i = 0, j = 0;
+	while ((i + 2) < height * width * 2)
+	{
+		y0 = pixel_16[i];
+		u0 = pixel_16[i+1];
+		y1 = pixel_16[i+2];
+		v0 = pixel_16[i+3];
+
+		yuv2rgb(y0, u0, v0, &r, &g, &b);	// 1st pixel
+
+		pixel_24[j] = r;
+		pixel_24[j + 1] = g;
+		pixel_24[j + 2] = b;
+		j+=BPP_RGB24;
+
+		yuv2rgb(y1, u0, v0, &r, &g, &b);// 2nd pixel
+
+		pixel_24[j] = r;
+		pixel_24[j + 1] = g;
+		pixel_24[j + 2] = b;
+		j+=BPP_RGB24;
+		i += BPP_YUY2;
+	}
+	printf("Pixel %d of %d (yuyv) and %d of %d (rgb) done\n ", i, width * height * 2, j, width * height * 3);
+}
 
 static rgb_ptr yuy2_to_rgb24() {
 	int newsize = buffer_copy_lenght / 2 * 3;
@@ -33,33 +89,34 @@ static rgb_ptr yuy2_to_rgb24() {
 		printf("FAILED!!");
 		fflush(stdout);
 	}
-	int i = 0,j = 0;
-	rgb_ptr b = buffer_copy;
-	while ((i + 2) < buffer_copy_lenght) {
-		result[j] = b[i];
-		result[j + 1] = b[i];
-		result[j + 2] = b[i];
-		j+=BPP_RGB24;
-		i+=BPP_YUY2;
-	}
+//	int i = 0, j = 0;
+//	rgb_ptr b = buffer_copy;
+//	while ((i + 2) < buffer_copy_lenght) {
+//		result[j] = b[i];
+//		result[j + 1] = b[i];
+//		result[j + 2] = b[i];
+//		j+=BPP_RGB24;
+//		i+=BPP_YUY2;
+//	}
+	yuyv_to_rgb(buffer_copy, result, wigth, heigth);
 	return result;
 }
 
-rgb_ptr get_image(){
+rgb_ptr get_image() {
 	capturing = TRUE;
 	rgb_ptr result = yuy2_to_rgb24();
 	capturing = FALSE;
 	return result;
 }
 
-
 static void process_image(const buffer * buf) {
 	static int i = 0;
-	if (!capturing)
+	if (!capturing) {
 		memcpy(buffer_copy, buf->start, buf->length);
-	if (i < 100){
-		printf("working...\n");
+		printf("readed... %d bytes\n", buf->length);
 		fflush(stdout);
+	} else {
+		printf("busy...\n");
 	}
 }
 
@@ -145,7 +202,7 @@ static void init_device(void) {
 	CLEAR(fmt);
 
 	fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-	fmt.fmt.pix.width = weigth;
+	fmt.fmt.pix.width = wigth;
 	fmt.fmt.pix.height = heigth;
 	fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV;
 	fmt.fmt.pix.field = V4L2_FIELD_INTERLACED;
@@ -206,8 +263,6 @@ static int read_frame() {
 }
 
 static void mainloop(void) {
-	unsigned int count;
-
 	while (TRUE) {
 		for (;;) {
 			fd_set fds;
@@ -275,7 +330,7 @@ static void start_capturing(void) {
 static void init_mmap(void) {
 	struct v4l2_requestbuffers req;
 
-	buffer_copy_lenght = weigth * heigth * BPP_YUY2;
+	buffer_copy_lenght = wigth * heigth * BPP_YUY2;
 	buffer_copy = malloc(buffer_copy_lenght);
 	CLEAR(req);
 
@@ -337,7 +392,7 @@ static void open_device(void) {
 		exit(EXIT_FAILURE);
 	}
 
-	if (!S_ISCHR (st.st_mode)) {
+	if (!S_ISCHR(st.st_mode)) {
 		fprintf(stderr, "%s is no device\n", dev_name);
 		exit(EXIT_FAILURE);
 	}
@@ -354,7 +409,7 @@ static void open_device(void) {
 void* startcapture(void* dev) {
 	capture* d = dev;
 	dev_name = d->device;
-	weigth = d->weigth;
+	wigth = d->weigth;
 	heigth = d->height;
 	open_device();
 	init_device();
