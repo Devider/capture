@@ -20,7 +20,8 @@ static buffer * buffers = NULL;
 static unsigned int n_buffers = 0;
 static int wigth = 0;
 static int heigth = 0;
-static const int BPP_YUY2 = 4;
+static const int BPP_YUY2 = 2;
+static const int BPP_YUY2_PIXEL = 4;
 static const int BPP_RGB24 = 3;
 static gboolean capturing = FALSE;
 static void* buffer_copy = NULL;
@@ -77,9 +78,21 @@ void yuyv_to_rgb(rgb_ptr buffer_yuyv, rgb_ptr buffer_rgb, int width, int height)
 		pixel_24[j + 1] = g;
 		pixel_24[j + 2] = b;
 		j+=BPP_RGB24;
-		i += BPP_YUY2;
+		i += BPP_YUY2_PIXEL;
 	}
 	printf("Pixel %d of %d (yuyv) and %d of %d (rgb) done\n ", i, width * height * 2, j, width * height * 3);
+}
+
+static void yuy2_to_rgb24_grey(rgb_ptr buffer_copy, rgb_ptr result){
+	int i = 0, j = 0;
+	rgb_ptr b = buffer_copy;
+	while ((i + 2) < buffer_copy_lenght) {
+		result[j] = b[i];
+		result[j + 1] = b[i];
+		result[j + 2] = b[i];
+		j+=BPP_RGB24;
+		i+=BPP_YUY2;
+	}
 }
 
 static rgb_ptr yuy2_to_rgb24() {
@@ -89,15 +102,7 @@ static rgb_ptr yuy2_to_rgb24() {
 		printf("FAILED!!");
 		fflush(stdout);
 	}
-//	int i = 0, j = 0;
-//	rgb_ptr b = buffer_copy;
-//	while ((i + 2) < buffer_copy_lenght) {
-//		result[j] = b[i];
-//		result[j + 1] = b[i];
-//		result[j + 2] = b[i];
-//		j+=BPP_RGB24;
-//		i+=BPP_YUY2;
-//	}
+//	yuy2_to_rgb24_grey(buffer_copy, result);
 	yuyv_to_rgb(buffer_copy, result, wigth, heigth);
 	return result;
 }
@@ -110,11 +115,8 @@ rgb_ptr get_image() {
 }
 
 static void process_image(const buffer * buf) {
-	static int i = 0;
 	if (!capturing) {
 		memcpy(buffer_copy, buf->start, buf->length);
-		printf("readed... %d bytes\n", buf->length);
-		fflush(stdout);
 	} else {
 		printf("busy...\n");
 	}
