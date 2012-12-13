@@ -28,7 +28,6 @@ static void* buffer_copy = NULL;
 static int buffer_copy_lenght = 0;
 
 char clip(int x){
-	//return x > 255 ? x : x < 0 ? 0 : x;
 	if (x>255)
 		return 255;
 	if (x<0)
@@ -48,7 +47,7 @@ static void yuv2rgb(int y, int u, int v, char *r, char *g, char *b) {
 void yuyv_to_rgb(rgb_ptr buffer_yuyv, rgb_ptr buffer_rgb, int width, int height)
 {
 	rgb_ptr pixel_16;   // for YUYV
-	rgb_ptr pixel_24;// for RGB
+	rgb_ptr pixel_24;	// for RGB
 	int y0, u0, v0, y1;
 	char r, g, b;
 	if ( buffer_yuyv == NULL || buffer_rgb == NULL)
@@ -58,7 +57,7 @@ void yuyv_to_rgb(rgb_ptr buffer_yuyv, rgb_ptr buffer_rgb, int width, int height)
 	pixel_24 = buffer_rgb;//width * height * 3
 
 	int i = 0, j = 0;
-	while ((i + 2) < height * width * 2)
+	while ((i + BPP_YUY2) < height * width * BPP_YUY2)
 	{
 		y0 = pixel_16[i];
 		u0 = pixel_16[i+1];
@@ -86,7 +85,7 @@ void yuyv_to_rgb(rgb_ptr buffer_yuyv, rgb_ptr buffer_rgb, int width, int height)
 static void yuy2_to_rgb24_grey(rgb_ptr buffer_copy, rgb_ptr result){
 	int i = 0, j = 0;
 	rgb_ptr b = buffer_copy;
-	while ((i + 2) < buffer_copy_lenght) {
+	while ((i + BPP_YUY2) < buffer_copy_lenght) {
 		result[j] = b[i];
 		result[j + 1] = b[i];
 		result[j + 2] = b[i];
@@ -96,7 +95,7 @@ static void yuy2_to_rgb24_grey(rgb_ptr buffer_copy, rgb_ptr result){
 }
 
 static rgb_ptr yuy2_to_rgb24() {
-	int newsize = buffer_copy_lenght / 2 * 3;
+	int newsize = buffer_copy_lenght / BPP_YUY2 * BPP_RGB24;
 	rgb_ptr result = malloc(newsize);
 	if (result == NULL) {
 		printf("FAILED!!");
