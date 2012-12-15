@@ -12,18 +12,39 @@ static rgb_ptr trash_buf = NULL;
 int abs(int);
 void free(void*);
 rgb_ptr get_image();
+char clip(int);
 
-static void get_diff(rgb_ptr buf_new, rgb_ptr buf_old, int length) {
+void get_diff(rgb_ptr buf_new, rgb_ptr buf_old, int length) {
 	if((!buf_new)||(!buf_old)){
 		return;
 	}
 	int i = 0;
-	while ((i + 3) < length) {
+	while ((i + BPP_RGB24) < length) {
 		int diff = abs(buf_new[i] - buf_old[i]);
 		if (diff > 15)
 			buf_old[i + 2] = 255;
-		i+=3;
+		i+=BPP_RGB24;
 	}
+}
+
+rgb_ptr get_red(rgb_ptr buf, int length) {
+	if(!buf){
+		return NULL;
+	}
+	int bar_chart[255];
+	int i = 0;
+	while ((i + BPP_RGB24) < length) {
+		char k = buf[i] - (buf[i + 1] + buf[i + 2]) / 2;
+		unsigned char r = clip(255 - k);
+
+		bar_chart[r] += 1;
+
+		buf[i    ] = r;
+		buf[i + 1] = r;
+		buf[i + 2] = r;
+		i+=BPP_RGB24;
+	}
+	return NULL;
 }
 
 static void refresh_image() {
@@ -31,7 +52,8 @@ static void refresh_image() {
 		free(trash_buf);
 	rgb_ptr buf = get_image();
 	if (old_buf) {
-		get_diff(buf, old_buf, 640 * 480 * 3);
+		//get_diff(buf, old_buf, 640 * 480 * 3);
+		get_red(old_buf, 640 * 480 * 3);
 		GdkPixbuf* p_old_buf = gdk_pixbuf_new_from_data(old_buf, GDK_COLORSPACE_RGB, FALSE, 8, 640, 480, 640 * 3, NULL, NULL);
 		gtk_image_set_from_pixbuf(image_diff, p_old_buf);
 		g_object_unref(p_old_buf);
@@ -91,7 +113,7 @@ void show_main_form(int argc, char *argv[]) {
 
 	gtk_grid_attach(GTK_GRID (grid), (GtkWidget*)image_diff, 1, 1, 1, 1);
 
-	g_timeout_add(1000 / 30 , (GSourceFunc) time_handler, NULL );
+	g_timeout_add(1000 / 10 , (GSourceFunc) time_handler, NULL );
 
 	gtk_widget_show_all(window);
 

@@ -6,7 +6,7 @@
 #include <fcntl.h>
 #include <linux/videodev2.h>
 #include <sys/mman.h>
-#include <sys/ioctl.h>
+#include <linux/ioctl.h>
 #include <sys/stat.h>
 #include <gtk/gtk.h>
 #include <assert.h>
@@ -20,27 +20,28 @@ static buffer * buffers = NULL;
 static unsigned int n_buffers = 0;
 static int wigth = 0;
 static int heigth = 0;
-static const int BPP_YUY2 = 2;
-static const int BPP_YUY2_PIXEL = 4;
-static const int BPP_RGB24 = 3;
 static gboolean capturing = FALSE;
 static void* buffer_copy = NULL;
 static int buffer_copy_lenght = 0;
 
 char clip(int x){
-	if (x>255)
+	if (x>255){
 		return 255;
-	if (x<0)
+	} else
+	if (x<0) {
 		return 0;
-	return x;
+	} else {
+		return x;
+	}
 }
 
 static void yuv2rgb(int y, int u, int v, char *r, char *g, char *b) {
 	int c = y - 16, d = u - 128, e = v - 128;
 
-	*r = clip(1.164383 * c + 1.596027 * e);
-	*g = clip(1.164383 * c - (0.391762 * d) - (0.812968 * e));
-	*b = clip(1.164383 * c + 2.017232 * d);
+	int C = 1.164383 * c;
+	*r = clip(C + 1.596027 * e);
+	*g = clip(C - (0.391762 * d) - (0.812968 * e));
+	*b = clip(C + 2.017232 * d);
 
 }
 
@@ -79,7 +80,6 @@ void yuyv_to_rgb(rgb_ptr buffer_yuyv, rgb_ptr buffer_rgb, int width, int height)
 		j+=BPP_RGB24;
 		i += BPP_YUY2_PIXEL;
 	}
-	printf("Pixel %d of %d (yuyv) and %d of %d (rgb) done\n ", i, width * height * 2, j, width * height * 3);
 }
 
 static void yuy2_to_rgb24_grey(rgb_ptr buffer_copy, rgb_ptr result){

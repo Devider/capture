@@ -11,6 +11,9 @@
 #define rgb_ptr unsigned char*
 #define CLEAR(x) memset (&(x), 0, sizeof (x))
 #define HISTORY_LENGHT	2
+#define BPP_YUY2 2
+#define BPP_YUY2_PIXEL 4
+#define BPP_RGB24 3
 
 typedef struct _buffer {
 	void * start;
