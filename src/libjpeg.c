@@ -3,6 +3,8 @@
 #include <setjmp.h>
 #include "types.h"
 
+int exit(int);
+
 void write_JPEG_file(char * filename, int image_width, int image_height,
 		const rgb_ptr image_buffer, int quality) {
 
