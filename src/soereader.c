@@ -14,8 +14,6 @@
 #include <unistd.h>
 #include "types.h"
 
-extern void* startcapture(void*);
-extern void show_main_form(int, char*);
 
 int main(int argn, char* argv[]) {
 	pthread_t thread;

@@ -93,15 +93,10 @@ void show_main_form(int argc, char *argv[]) {
 
 	gtk_container_add(GTK_CONTAINER (window), grid);
 
-	object = gtk_button_new_with_label("Button 1");
-	g_signal_connect(object, "clicked", G_CALLBACK (on_refresh_image), NULL);
-
-	gtk_grid_attach(GTK_GRID (grid), object, 0, 0, 1, 1);
-
-	object = gtk_button_new_with_label("Button 2");
+	object = gtk_button_new_with_label("Exit");
 	g_signal_connect(object, "clicked", G_CALLBACK (quit), NULL);
 
-	gtk_grid_attach(GTK_GRID (grid), object, 1, 0, 1, 1);
+	gtk_grid_attach(GTK_GRID (grid), object, 0, 0, 2, 1);
 
 	gchar* file_name = "/home/kirill/workspace/jpegtest/file0.jpg";
 	image_stream = (GtkImage*) gtk_image_new_from_file(file_name);

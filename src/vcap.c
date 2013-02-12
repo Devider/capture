@@ -8,9 +8,11 @@
 #include <sys/mman.h>
 #include <linux/ioctl.h>
 #include <sys/stat.h>
-#include <gtk/gtk.h>
 #include <assert.h>
 #include "types.h"
+
+#define _TRUE_ 1
+#define _FALSE_ 0
 
 static void init_mmap(void);
 static void errno_exit(const char *s);
@@ -20,19 +22,12 @@ static buffer * buffers = NULL;
 static unsigned int n_buffers = 0;
 static int wigth = 0;
 static int heigth = 0;
-static gboolean capturing = FALSE;
+static int capturing = 0;
 static void* buffer_copy = NULL;
 static int buffer_copy_lenght = 0;
 
 char clip(int x){
-	if (x>255){
-		return 255;
-	} else
-	if (x<0) {
-		return 0;
-	} else {
-		return x;
-	}
+	return x > 255 ? 255 : x < 0 ? 0 : x;
 }
 
 static void yuv2rgb(int y, int u, int v, char *r, char *g, char *b) {
@@ -101,15 +96,15 @@ static rgb_ptr yuy2_to_rgb24() {
 		printf("FAILED!!");
 		fflush(stdout);
 	}
-//	yuy2_to_rgb24_grey(buffer_copy, result);
+
 	yuyv_to_rgb(buffer_copy, result, wigth, heigth);
 	return result;
 }
 
 rgb_ptr get_image() {
-	capturing = TRUE;
+	capturing = _TRUE_;
 	rgb_ptr result = yuy2_to_rgb24();
-	capturing = FALSE;
+	capturing = _FALSE_;
 	return result;
 }
 
@@ -264,7 +259,7 @@ static int read_frame() {
 }
 
 static void mainloop(void) {
-	while (TRUE) {
+	while (_TRUE_) {
 		for (;;) {
 			fd_set fds;
 			struct timeval tv;
