@@ -258,7 +258,7 @@ static int read_frame() {
 	return 1;
 }
 
-static void mainloop(void) {
+static void mainloop(void (*refresh)(void)) {
 	while (_TRUE_) {
 		for (;;) {
 			fd_set fds;
@@ -288,6 +288,7 @@ static void mainloop(void) {
 			if (read_frame())
 				break;
 		}
+		refresh();
 	}
 }
 
@@ -410,7 +411,7 @@ void* startcapture(void* dev) {
 	open_device();
 	init_device();
 	start_capturing();
-	mainloop();
+	mainloop(d->refresh);
 	stop_capturing();
 	uninit_device();
 	close_device();

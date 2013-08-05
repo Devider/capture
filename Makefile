@@ -7,7 +7,7 @@ mainform.o:  src/mainform.c
 soereader.o:  src/soereader.c
 	gcc -c  src/soereader.c -O2
 all: libjpeg.o mainform.o vcap.o soereader.o 
-	gcc -o "soereader"  ./libjpeg.o ./mainform.o ./soereader.o ./vcap.o   -lpthread -lgtk-3 -ljpeg -Wall
+	gcc -o "soereader"  ./libjpeg.o ./mainform.o ./soereader.o ./vcap.o   -lpthread -lgtk-3 -ljpeg `pkg-config --libs gtk+-3.0` -Wall
 clean: 
 	rm -f *.o; rm -f soereader 
 

@@ -24,6 +24,7 @@ typedef struct _capture {
 	char* device;
 	int weigth;
 	int height;
+	void (*refresh)(void);
 } capture;
 
 void* startcapture(void* dev);

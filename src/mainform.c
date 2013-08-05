@@ -47,7 +47,7 @@ rgb_ptr get_red(rgb_ptr buf, int length) {
 	return NULL;
 }
 
-static void refresh_image() {
+void refresh_image() {
 	if (trash_buf)
 		free(trash_buf);
 	rgb_ptr buf = get_image();
@@ -67,18 +67,26 @@ static void refresh_image() {
 	old_buf = buf;
 }
 
-static void on_refresh_image(GtkWidget *widget, gpointer data) {
-
-}
-
 static gboolean time_handler(GtkWidget *widget) {
-	refresh_image();
+//	refresh_image();
+//	puts("\Timer!\n");
 	return TRUE;
 }
 
 static void quit(GtkWidget *widget, gpointer data) {
 	gtk_main_quit();
 }
+
+static void start(GtkWidget *widget, gpointer data) {
+	pthread_t thread;
+	capture c = {"/dev/video0", 640, 480, refresh_image};
+	pthread_create(&thread, NULL, &startcapture, &c);
+	sleep(1);
+	g_timeout_add(1000 / 25 , (GSourceFunc) time_handler, NULL );
+
+}
+
+
 void show_main_form(int argc, char *argv[]) {
 	GtkWidget *object;
 
@@ -93,22 +101,21 @@ void show_main_form(int argc, char *argv[]) {
 
 	gtk_container_add(GTK_CONTAINER (window), grid);
 
+	const char* file_name="/home/kirill/workspace.c/soereader/Debug/first.png";
+	image_stream = (GtkImage*) gtk_image_new_from_file(file_name);
+	gtk_grid_attach(GTK_GRID (grid), (GtkWidget*)image_stream, 0, 0, 1, 1);
+
+	file_name="/home/kirill/workspace.c/soereader/Debug/second.png";
+	image_diff = (GtkImage*) gtk_image_new_from_file(file_name);
+	gtk_grid_attach(GTK_GRID (grid), (GtkWidget*)image_diff, 1, 0, 1, 1);
+
+	object = gtk_button_new_with_label("Start");
+	g_signal_connect(object, "clicked", G_CALLBACK (start), NULL);
+	gtk_grid_attach(GTK_GRID (grid), object, 0, 1, 1, 1);
+
 	object = gtk_button_new_with_label("Exit");
 	g_signal_connect(object, "clicked", G_CALLBACK (quit), NULL);
-
-	gtk_grid_attach(GTK_GRID (grid), object, 0, 0, 2, 1);
-
-	gchar* file_name = "/home/kirill/workspace/jpegtest/file0.jpg";
-	image_stream = (GtkImage*) gtk_image_new_from_file(file_name);
-
-	gtk_grid_attach(GTK_GRID (grid), (GtkWidget*)image_stream, 0, 1, 1, 1);
-
-	file_name = "/home/kirill/workspace/jpegtest/file1.jpg";
-	image_diff = (GtkImage*) gtk_image_new_from_file(file_name);
-
-	gtk_grid_attach(GTK_GRID (grid), (GtkWidget*)image_diff, 1, 1, 1, 1);
-
-	g_timeout_add(1000 / 10 , (GSourceFunc) time_handler, NULL );
+	gtk_grid_attach(GTK_GRID (grid), object, 1, 1, 1, 1);
 
 	gtk_widget_show_all(window);
 
