@@ -25,6 +25,10 @@ static int heigth = 0;
 static int capturing = 0;
 static void* buffer_copy = NULL;
 static int buffer_copy_lenght = 0;
+static int can_stop = 1;
+
+int ioctl(int, int, void*);
+int close(int);
 
 char clip(int x){
 	return x > 255 ? 255 : x < 0 ? 0 : x;
@@ -77,17 +81,17 @@ void yuyv_to_rgb(rgb_ptr buffer_yuyv, rgb_ptr buffer_rgb, int width, int height)
 	}
 }
 
-static void yuy2_to_rgb24_grey(rgb_ptr buffer_copy, rgb_ptr result){
-	int i = 0, j = 0;
-	rgb_ptr b = buffer_copy;
-	while ((i + BPP_YUY2) < buffer_copy_lenght) {
-		result[j] = b[i];
-		result[j + 1] = b[i];
-		result[j + 2] = b[i];
-		j+=BPP_RGB24;
-		i+=BPP_YUY2;
-	}
-}
+//static void yuy2_to_rgb24_grey(rgb_ptr buffer_copy, rgb_ptr result){
+//	int i = 0, j = 0;
+//	rgb_ptr b = buffer_copy;
+//	while ((i + BPP_YUY2) < buffer_copy_lenght) {
+//		result[j] = b[i];
+//		result[j + 1] = b[i];
+//		result[j + 2] = b[i];
+//		j+=BPP_RGB24;
+//		i+=BPP_YUY2;
+//	}
+//}
 
 static rgb_ptr yuy2_to_rgb24() {
 	int newsize = buffer_copy_lenght / BPP_YUY2 * BPP_RGB24;
@@ -259,7 +263,7 @@ static int read_frame() {
 }
 
 static void mainloop(void (*refresh)(void)) {
-	while (_TRUE_) {
+	while (can_stop) {
 		for (;;) {
 			fd_set fds;
 			struct timeval tv;
@@ -285,8 +289,9 @@ static void mainloop(void (*refresh)(void)) {
 				fprintf(stderr, "select timeout\n");
 				exit(EXIT_FAILURE);
 			}
-			if (read_frame())
+			if (read_frame()){
 				break;
+			}
 		}
 		refresh();
 	}
@@ -403,7 +408,12 @@ static void open_device(void) {
 	}
 }
 
+void cancel_capturing(){
+	can_stop = 0;
+}
+
 void* startcapture(void* dev) {
+	can_stop = 1;
 	capture* d = dev;
 	dev_name = d->device;
 	wigth = d->weigth;
