@@ -3,7 +3,6 @@
 #include <setjmp.h>
 #include "types.h"
 
-int exit(int);
 
 void write_JPEG_file(char * filename, int image_width, int image_height,
 		const rgb_ptr image_buffer, int quality) {
@@ -22,7 +21,7 @@ void write_JPEG_file(char * filename, int image_width, int image_height,
 
 			if ((outfile = fopen(filename, "wb")) == NULL ) {
 				fprintf(stderr, "can't open %s\n", filename);
-				exit(1);
+				return;
 			}
 			jpeg_stdio_dest(&cinfo, outfile);
 
