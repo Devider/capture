@@ -1,11 +1,11 @@
 #include <stdio.h>
 #include "jpeglib.h"
 #include <setjmp.h>
-#include "types.h"
+#include "common.h"
 
 
 void write_JPEG_file(char * filename, int image_width, int image_height,
-		const rgb_ptr image_buffer, int quality) {
+		rgb_ptr image_buffer, int quality) {
 
 			struct jpeg_compress_struct cinfo;
 

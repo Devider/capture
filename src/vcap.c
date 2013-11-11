@@ -13,10 +13,31 @@ static void* buffer_copy = NULL;
 static int buffer_copy_lenght = 0;
 static int can_stop = 1;
 
+void* startcapture(void* dev) {
+	can_stop = 1;
+	capture* d = dev;
+	dev_name = d->device;
+	wigth = d->weigth;
+	heigth = d->height;
+	open_device();
+	init_device();
+	start_capturing();
+	mainloop(d->refresh);
+	stop_capturing();
+	uninit_device();
+	close_device();
+	return 0;
+}
 
+rgb_ptr get_image() {
+	capturing = _TRUE_;
+	rgb_ptr result = yuy2_to_rgb24();
+	capturing = _FALSE_;
+	return result;
+}
 
-char clip(int x){
-	return x > 255 ? 255 : x < 0 ? 0 : x;
+void cancel_capturing(){
+	can_stop = 0;
 }
 
 static void yuv2rgb(int y, int u, int v, char *r, char *g, char *b) {
@@ -29,7 +50,7 @@ static void yuv2rgb(int y, int u, int v, char *r, char *g, char *b) {
 
 }
 
-void yuyv_to_rgb(rgb_ptr buffer_yuyv, rgb_ptr buffer_rgb, int width, int height)
+static void yuyv_to_rgb(rgb_ptr buffer_yuyv, rgb_ptr buffer_rgb, int width, int height)
 {
 	rgb_ptr pixel_16;   // for YUYV
 	rgb_ptr pixel_24;	// for RGB
@@ -87,13 +108,6 @@ static rgb_ptr yuy2_to_rgb24() {
 	}
 
 	yuyv_to_rgb(buffer_copy, result, wigth, heigth);
-	return result;
-}
-
-rgb_ptr get_image() {
-	capturing = _TRUE_;
-	rgb_ptr result = yuy2_to_rgb24();
-	capturing = _FALSE_;
 	return result;
 }
 
@@ -393,22 +407,3 @@ static void open_device(void) {
 	}
 }
 
-void cancel_capturing(){
-	can_stop = 0;
-}
-
-void* startcapture(void* dev) {
-	can_stop = 1;
-	capture* d = dev;
-	dev_name = d->device;
-	wigth = d->weigth;
-	heigth = d->height;
-	open_device();
-	init_device();
-	start_capturing();
-	mainloop(d->refresh);
-	stop_capturing();
-	uninit_device();
-	close_device();
-	return 0;
-}

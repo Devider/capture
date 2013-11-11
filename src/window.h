@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include "types.h"
+#include "common.h"
 
 void reverse(char[]);
 void itoa(int, char[]);

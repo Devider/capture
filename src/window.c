@@ -1,4 +1,5 @@
-#include "mainform.h"
+#include "window.h"
+#include "common.h"
 
 static GtkWidget *window;
 static GtkWidget *grid;
@@ -10,6 +11,7 @@ static GtkWidget* start_btn;
 static int need_to_save_image = FALSE;
 static int updating_form = FALSE;
 static int framenumber = 0;
+extern char* dev_name;
 
 int get_diff(rgb_ptr buf_new, rgb_ptr buf_old, int length) {
 	if((!buf_new)||(!buf_old)) {
@@ -20,7 +22,7 @@ int get_diff(rgb_ptr buf_new, rgb_ptr buf_old, int length) {
 		int diff = abs(buf_new[i] - buf_old[i]);
 		total++;
 		if (diff > 15) {
-			buf_old[i + 2] = 255;
+//			buf_old[i + 2] = 255;
 			changed++;
 		}
 		i+=BPP_RGB24;
@@ -61,7 +63,6 @@ void refresh_image() {
 		trash_buf = old_buf;
 	}
 	old_buf = buf;
-
 }
 
 void quit(GtkWidget *widget, gpointer data) {
@@ -75,7 +76,7 @@ static gboolean save_image(GtkWidget *widget) {
 		char filename[10];
 		itoa(framenumber++, filename);
 		strcat(filename, ".jpeg");
-		write_JPEG_file(filename, 640, 480, old_buf, 50);
+//		write_JPEG_file(filename, 640, 480, old_buf, 50);
 	}
 	need_to_save_image = FALSE;
 	return TRUE;
@@ -93,7 +94,7 @@ static gboolean update_form(GtkWidget *widget) {
 }
 
 void start(GtkWidget *widget, gpointer data) {
-	capture c = { "/dev/video0", 640, 480, &refresh_image };
+	capture c = {dev_name, 640, 480, &refresh_image };
 	pthread_create(&thread, NULL, &startcapture, &c);
 	gtk_widget_set_sensitive(start_btn, FALSE);
 	g_timeout_add(100, (GSourceFunc) update_form, (gpointer) window);
@@ -130,11 +131,6 @@ void show_main_form(int argc, char *argv[]) {
 	gtk_widget_show_all(window);
 
 	gtk_main();
-}
-
-int main(int argn, char* argv[]) {
-	show_main_form(argn, argv);
-	return EXIT_SUCCESS;
 }
 
 void reverse(char s[]) {
