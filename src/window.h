@@ -1,8 +1,4 @@
 #include <gtk/gtk.h>
-#include <stddef.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
 #include "common.h"
 
 void reverse(char[]);
