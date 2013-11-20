@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <string.h>
 
 #define rgb_ptr unsigned char*
 #define CLEAR(x) memset (&(x), 0, sizeof (x))
@@ -22,6 +23,7 @@ typedef struct _capture {
 	char* device;
 	int weigth;
 	int height;
+	int do_save_image;
 	void (*refresh)(void);
 } capture;
 

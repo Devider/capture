@@ -2,6 +2,17 @@
 
 static void init_mmap(void);
 static void errno_exit(const char *s);
+static void close_device(void);
+static void uninit_device(void);
+static void init_device(void);
+static void mainloop(void (*refresh)(void));
+static void stop_capturing(void);
+static void start_capturing(void);
+static void open_device(void);
+int ioctl(int, int, void*);
+int close(int);
+
+static rgb_ptr yuy2_to_rgb24();
 static char * dev_name = NULL;
 static int fd = -1;
 static buffer * buffers = NULL;

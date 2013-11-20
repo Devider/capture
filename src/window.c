@@ -1,5 +1,5 @@
 #include "window.h"
-#include "common.h"
+#include <gtk/gtk.h>
 
 static GtkWidget *window;
 static GtkWidget *grid;
@@ -39,7 +39,8 @@ static gboolean save_image(GtkWidget *widget) {
 		char filename[20];
 		get_file_name(filename);
 		strcat(filename, ".jpeg");
-		write_JPEG_file(filename, 640, 480, old_buf, 50);
+		if (cap->do_save_image)
+			write_JPEG_file(filename, 640, 480, old_buf, 50);
 	}
 	need_to_save_image = FALSE;
 	return TRUE;

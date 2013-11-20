@@ -1,27 +1,47 @@
 #include "common.h"
-#include <pthread.h>
+#include "vcap.h"
 
 
+static rgb_ptr old_buf = NULL;
+static rgb_ptr trash_buf = NULL;
 static pthread_t thread;
-unsigned int sleep (unsigned int);
-extern char* dev_name;
-static short frame_is_reafy = 0;
+static int need_to_save_image = 0;
+static capture *cap = NULL;
 
-void refresh_image_cli();
-
-void start_cli() {
-	capture c = {dev_name, 640, 480, &refresh_image_cli };
-	pthread_create(&thread, 0, &startcapture, &c);
-	sleep(1);
-	while(1){
-		sleep(1);
-		if(frame_is_reafy){
-
-		}
-	}
-	sleep(1);
-}
 
 void refresh_image_cli() {
-	frame_is_reafy = 1;
+	if (trash_buf)
+		free(trash_buf);
+	rgb_ptr buf = get_image();
+	if (old_buf) {
+		float diff = get_diff(buf, old_buf, 640 * 480 * 3);
+		if (diff > 1)
+			need_to_save_image = 1;
+		trash_buf = old_buf;
+	}
+	old_buf = buf;
+}
+
+
+static void save_image() {
+
+	if (need_to_save_image) {
+		char filename[20];
+		get_file_name(filename);
+		strcat(filename, ".jpeg");
+		if (cap->do_save_image)
+			write_JPEG_file(filename, 640, 480, old_buf, 50);
+	}
+	need_to_save_image = 0;
+}
+
+void do_start_captirung_cli(capture c) {
+	cap = &c;
+	cap->refresh = refresh_image_cli;
+
+	pthread_create(&thread, NULL, &startcapture, cap);
+	while(1){
+		sleep(1);
+		save_image();
+	}
 }

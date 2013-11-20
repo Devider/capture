@@ -14,13 +14,4 @@
 #define _TRUE_ 1
 #define _FALSE_ 0
 
-int ioctl(int, int, void*);
-int close(int);
-static void close_device(void);
-static void uninit_device(void);
-static void init_device(void);
-static void mainloop(void (*refresh)(void));
-static rgb_ptr yuy2_to_rgb24();
-static void stop_capturing(void);
-static void start_capturing(void);
-static void open_device(void);
+rgb_ptr get_image();
