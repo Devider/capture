@@ -6,6 +6,12 @@
 #include <unistd.h>
 #include <string.h>
 #include <string.h>
+#include <stdio.h>
+#include "jpeglib.h"
+#include <setjmp.h>
+#include "common.h"
+
+
 
 #define rgb_ptr unsigned char*
 #define CLEAR(x) memset (&(x), 0, sizeof (x))
@@ -27,6 +33,8 @@ typedef struct _capture {
 	int do_save_image;
 	void (*refresh)(void);
 } capture;
+
+void write_JPEG_file(char*, int, int, rgb_ptr, int);
 
 void get_file_name(char*, char*);
 
