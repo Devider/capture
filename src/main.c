@@ -5,34 +5,41 @@
 #include "window.h"
 #include "console.h"
 
+
 char *frontend = "gtk";
 char *dev_name = "/dev/video0";
+char *path = "/data/capture";
+static const char short_options[] = "f:d:po:";
 
-static const char short_options[] = "f:d:p";
-
-static const struct option long_options[] = { { "interface", required_argument,
-		NULL, 'f' }, { "device", required_argument, NULL, 'd' }, { "help",
-		no_argument, NULL, 'h' }, { "pretend", no_argument, NULL, 'p' }, { 0, 0,
-		0, 0 } };
+static const struct option long_options[] =
+{{ "interface", required_argument, NULL, 'f' },
+ { "device", required_argument, NULL, 'd' },
+ { "out", required_argument, NULL, 'o' },
+ { "help", no_argument, NULL, 'h' },
+ { "pretend", no_argument, NULL, 'p' },
+ { 0, 0, 0, 0 } };
 
 static void usage(FILE *fp, int argc, char **argv) {
 	fprintf(fp, "Usage: %s [options]\n\n"
 			"Version 0.3\n"
 			"Options:\n"
 			"-d | --device name      Video device name [%s]\n"
-			"-f | --frontend name    Frontend (\"gtk\"|\"web\") [%s]\n"
+			"-f | --frontend name    Frontend (\"gtk\"|\"web\"|\"cli\") [%s]\n"
 			"-h | --help             Print this message\n"
 			"-p | --pretend          Do not save nothing\n"
-			"", argv[0], dev_name, frontend);
+			"-o | --out              Path to save images [%s]\n"
+			"", argv[0], dev_name, frontend, path);
 }
 
 int main(int argn, char* argv[]) {
 	int idx;
 	int c;
 	int do_save = 1;
-	int all_flags_processed = 1;
+	int done_flag = 1;
 
-	while (all_flags_processed) {
+
+
+	while (done_flag) {
 		c = getopt_long(argn, argv, short_options, long_options, &idx);
 		switch (c) {
 		case 'f':
@@ -41,6 +48,9 @@ int main(int argn, char* argv[]) {
 		case 'd':
 			dev_name = optarg;
 			break;
+		case 'o':
+			path = optarg;
+			break;
 		case 'p':
 			do_save = 0;
 			break;
@@ -48,14 +58,14 @@ int main(int argn, char* argv[]) {
 			usage(stderr, argn, argv);
 			exit(0);
 		case -1:
-			all_flags_processed = 0;
+			done_flag = 0;
 			break;
 		default:
 			usage(stderr, argn, argv);
 			exit(-1);
 		}
 	}
-	capture cap = { dev_name, 640, 480, do_save, NULL };
+	capture cap = { dev_name, path, 640, 480, do_save, NULL };
 	if (0 == strcmp(frontend, "gtk")) {
 		show_main_form(argn, argv, cap);
 	} else if (0 == strcmp(frontend, "web")) {
@@ -63,7 +73,7 @@ int main(int argn, char* argv[]) {
 	} else if (0 == strcmp(frontend, "cli")) {
 		do_start_captirung_cli(cap);
 	} else {
-		fprintf(stderr, "Only 'web' or 'gtk' frontends are possible!");
+		fprintf(stderr, "Only 'web', 'cli' or 'gtk' frontends are possible!");
 	}
 	return 0;
 }

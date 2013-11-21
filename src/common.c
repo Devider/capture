@@ -69,10 +69,14 @@ void itoa(int n, char s[]) {
 	reverse(s);
 }
 
-void get_file_name(char* buf){
+void get_file_name(char* buf, char* path){
+	buf = strcpy(buf, path);
 	time_t t;
 	struct tm *timeptr;
 	t = time(NULL);
 	timeptr = localtime(&t);
-	strftime(buf, 20, "%Y%m%e%H%M%S", timeptr);
+	char fn[15];
+	strftime(fn, sizeof(fn), "%Y%m%e%H%M%S", timeptr);
+	buf = strcat(buf, fn);
+	buf = strcat(buf, ".jpg");
 }

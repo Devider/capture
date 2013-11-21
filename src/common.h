@@ -21,13 +21,14 @@ typedef struct _buffer {
 
 typedef struct _capture {
 	char* device;
+	char* path;
 	int weigth;
 	int height;
 	int do_save_image;
 	void (*refresh)(void);
 } capture;
 
-void get_file_name(char*);
+void get_file_name(char*, char*);
 
 void* startcapture(void*);
 

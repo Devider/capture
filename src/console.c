@@ -26,9 +26,8 @@ void refresh_image_cli() {
 static void save_image() {
 
 	if (need_to_save_image) {
-		char filename[20];
-		get_file_name(filename);
-		strcat(filename, ".jpeg");
+		char filename[256];
+		get_file_name(filename, cap->path);
 		if (cap->do_save_image)
 			write_JPEG_file(filename, 640, 480, old_buf, 50);
 	}
