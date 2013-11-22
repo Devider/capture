@@ -317,7 +317,7 @@ static void mainloop(void (*refresh)(void)) {
 
 		long mtime = ((seconds) * 1000 + useconds/1000.0) + 0.5;
 
-		if (mtime > 300){
+		if (mtime > 200){
 			refresh();
 			gettimeofday(&last, NULL);
 		}

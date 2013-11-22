@@ -14,7 +14,7 @@ static capture *cap = NULL;
 void refresh_image_gtk() {
 	if (updating_form)
 		return;
-	if (!need_to_save_image) {
+//	if (!need_to_save_image) {
 		rgb_ptr buf = get_image();
 		if (old_buf) {
 			float diff = get_diff(buf, old_buf, 640 * 480 * 3);
@@ -23,7 +23,7 @@ void refresh_image_gtk() {
 			free(old_buf);
 		}
 		old_buf = buf;
-	}
+//	}
 }
 
 void quit(GtkWidget *widget, gpointer data) {

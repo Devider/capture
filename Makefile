@@ -13,5 +13,6 @@ window.o:  src/window.c
 all: main.o libjpeg.o window.o vcap.o common.o console.o
 	gcc -o "soereader"  ./console.o ./libjpeg.o ./window.o ./vcap.o ./main.o ./common.o   -lpthread -lgtk-3 -ljpeg `pkg-config --libs gtk+-3.0` -Wall
 clean: 
-	rm -f *.o; rm -f soereader 
+	rm -f *.o; rm -f soereader
+	rm *.jpg 
 
