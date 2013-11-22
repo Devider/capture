@@ -1,4 +1,5 @@
 #include "vcap.h"
+#include <sys/time.h>
 
 static void init_mmap(void);
 static void errno_exit(const char *s);
@@ -273,6 +274,11 @@ static int read_frame() {
 }
 
 static void mainloop(void (*refresh)(void)) {
+
+	struct timeval last, current;
+	gettimeofday(&last, NULL);
+	gettimeofday(&current, NULL);
+
 	while (can_stop) {
 		for (;;) {
 			fd_set fds;
@@ -303,7 +309,19 @@ static void mainloop(void (*refresh)(void)) {
 				break;
 			}
 		}
-		refresh();
+
+		gettimeofday(&current, NULL);
+
+		long seconds  = current.tv_sec  - last.tv_sec;
+		long useconds = current.tv_usec - last.tv_usec;
+
+		long mtime = ((seconds) * 1000 + useconds/1000.0) + 0.5;
+
+		if (mtime > 300){
+			refresh();
+			gettimeofday(&last, NULL);
+		}
+
 	}
 }
 
