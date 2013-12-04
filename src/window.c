@@ -1,4 +1,5 @@
 #include "window.h"
+#include "common.h"
 #include <gtk/gtk.h>
 
 static GtkWidget *window;
@@ -17,7 +18,7 @@ void refresh_image_gtk() {
 //	if (!need_to_save_image) {
 		rgb_ptr buf = get_image();
 		if (old_buf) {
-			float diff = get_diff(buf, old_buf, 640 * 480 * 3);
+			float diff = get_diff(buf, old_buf, IMG_WITGH * IMG_HEIGHT * 3);
 			if (diff > 1)
 			need_to_save_image = TRUE;
 			free(old_buf);
@@ -36,8 +37,11 @@ static gboolean save_image(GtkWidget *widget) {
 	if (need_to_save_image) {
 		char filename[100];
 		get_file_name(filename, cap->path);
-		if (cap->do_save_image)
-			write_JPEG_file(filename, 640, 480, old_buf, 50);
+		if (cap->do_save_image){
+			write_JPEG_file(filename, IMG_WITGH, 480, old_buf, 50);
+//			send_data(old_buf, IMG_SIZE);
+		}
+
 	}
 	need_to_save_image = FALSE;
 	return TRUE;
@@ -46,7 +50,7 @@ static gboolean save_image(GtkWidget *widget) {
 static gboolean update_form(GtkWidget *widget) {
 	updating_form = TRUE;
 	GdkPixbuf* p_old_buf = gdk_pixbuf_new_from_data(old_buf, GDK_COLORSPACE_RGB,
-	FALSE, 8, 640, 480, 640 * 3, NULL, NULL);
+	FALSE, 8, IMG_WITGH, IMG_HEIGHT, IMG_WITGH * 3, NULL, NULL);
 	gtk_image_set_from_pixbuf(image_diff, p_old_buf);
 	g_object_unref(p_old_buf);
 	updating_form = FALSE;
@@ -75,9 +79,9 @@ void show_main_form(int argc, char *argv[], capture c) {
 
 	gtk_container_add(GTK_CONTAINER(window), grid);
 
-	char stub[480 * 640 * 3];
+	char stub[IMG_HEIGHT * IMG_WITGH * 3];
 	GdkPixbuf* tmp = gdk_pixbuf_new_from_data((rgb_ptr) stub,
-			GDK_COLORSPACE_RGB, FALSE, 8, 640, 480, 640 * 3, NULL, NULL);
+			GDK_COLORSPACE_RGB, FALSE, 8, IMG_WITGH, IMG_HEIGHT, IMG_WITGH * 3, NULL, NULL);
 	image_diff = (GtkImage*) gtk_image_new_from_pixbuf(tmp);
 	gtk_grid_attach(GTK_GRID(grid), (GtkWidget*) image_diff, 0, 0, 1, 1);
 

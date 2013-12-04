@@ -10,6 +10,7 @@ char *frontend = "gtk";
 char *dev_name = "/dev/video0";
 char *path = "/data/capture";
 static const char short_options[] = "f:d:po:";
+capture cap;
 
 static const struct option long_options[] =
 {{ "interface", required_argument, NULL, 'f' },
@@ -65,7 +66,7 @@ int main(int argn, char* argv[]) {
 			exit(-1);
 		}
 	}
-	capture cap = { dev_name, path, 640, 480, do_save, NULL };
+	capture cap = { dev_name, path, IMG_WITGH, IMG_HEIGHT, do_save, NULL };
 	if (0 == strcmp(frontend, "gtk")) {
 		show_main_form(argn, argv, cap);
 	} else if (0 == strcmp(frontend, "web")) {

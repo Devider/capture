@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include "common.h"
 #include "vcap.h"
 
@@ -9,11 +10,11 @@ static capture *cap = NULL;
 void refresh_image_cli() {
 	if (!need_to_save_image) {
 		rgb_ptr buf = get_image();
-		int size = 640 * 480 * 3;
+		int size = IMG_WITGH * IMG_HEIGHT * BPP_RGB24;
 		if (old_buf) {
 			float diff = get_diff(buf, old_buf, size);
 			if (diff > 1) {
-				need_to_save_image = TRUE;
+				need_to_save_image = true;
 			}
 			free(old_buf);
 		}
@@ -26,10 +27,12 @@ static void save_image() {
 	if (need_to_save_image) {
 		char filename[256];
 		get_file_name(filename, cap->path);
-		if (cap->do_save_image)
-			write_JPEG_file(filename, 640, 480, old_buf, 50);
+		if (cap->do_save_image){
+			write_JPEG_file(filename, IMG_WITGH, IMG_HEIGHT, old_buf, 50);
+//			send_data(old_buf, IMG_WITGH*IMG_HEIGHT*BPP_RGB24);
+		}
 	}
-	need_to_save_image = FALSE;
+	need_to_save_image = false;
 }
 
 void do_start_captirung_cli(capture c) {

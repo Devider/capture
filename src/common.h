@@ -5,11 +5,17 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include <string.h>
+#include <stdio.h>
+#include <stdbool.h>
+#include <setjmp.h>
+#include <time.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
 #include <stdio.h>
 #include "jpeglib.h"
 #include <setjmp.h>
-#include "common.h"
+#include <stdlib.h>
 
 
 
@@ -19,6 +25,10 @@
 #define BPP_YUY2 2
 #define BPP_YUY2_PIXEL 4
 #define BPP_RGB24 3
+#define IMG_WITGH 640
+#define IMG_HEIGHT 480
+#define IMG_SIZE IMG_HEIGHT*IMG_HEIGHT*BPP_RGB24
+
 
 typedef struct _buffer {
 	void * start;
@@ -49,5 +59,9 @@ rgb_ptr get_red(rgb_ptr, int);
 void reverse(char[]);
 
 void itoa(int, char[]);
+
+void send_data(rgb_ptr buff, size_t buff_size);
+
+void save_image_to_file(rgb_ptr old_buf);
 
 #endif

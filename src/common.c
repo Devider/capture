@@ -1,5 +1,8 @@
-#include "common.h"
 #include <time.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include "common.h"
 
 
 char clip(int x){
@@ -14,7 +17,7 @@ float get_diff(rgb_ptr buf_new, rgb_ptr buf_old, int length) {
 	while ((i + BPP_RGB24) < length) {
 		int diff = abs((buf_new[i] - buf_old[i]));
 		total++;
-		if (diff > 17) {
+		if (diff > 25) {
 			buf_old[i + 2] = 255;
 			changed++;
 		}
@@ -81,6 +84,34 @@ void get_file_name(char* buf, char* path){
 	buf = strcat(buf, ".jpg");
 }
 
+void send_data(rgb_ptr buff, size_t buff_size){
+	char buf[] = "  ";
+	int sock;
+	struct sockaddr_in addr;
+
+	sock = socket(AF_INET, SOCK_STREAM, 0);
+	if (sock < 0) {
+		perror("socket");
+		exit(1);
+	}
+
+
+	addr.sin_family = AF_INET;
+	addr.sin_port = htons(2351); // или любой другой порт...
+	addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+	if (connect(sock, (struct sockaddr *) &addr, sizeof(addr)) < 0) {
+		perror("connect");
+		exit(2);
+	}
+
+	int i = send(sock, buff, buff_size, 0);
+	printf("Sent: %d bytes \n", i);
+	recv(sock, buf, sizeof(buf), 0);
+
+	close(sock);
+}
+
+
 void write_JPEG_file(char * filename, int image_width, int image_height,
 		rgb_ptr image_buffer, int quality) {
 
@@ -107,11 +138,11 @@ void write_JPEG_file(char * filename, int image_width, int image_height,
 	cinfo.input_components = 3;
 	cinfo.in_color_space = JCS_RGB;
 	jpeg_set_defaults(&cinfo);
-	jpeg_set_quality(&cinfo, quality, TRUE /* limit to baseline-JPEG values */);
+	jpeg_set_quality(&cinfo, quality, true);
 
-	jpeg_start_compress(&cinfo, TRUE);
+	jpeg_start_compress(&cinfo, true);
 
-	row_stride = image_width * 3; /* JSAMPLEs per row in image_buffer */
+	row_stride = image_width * 3;
 
 	while (cinfo.next_scanline < cinfo.image_height) {
 		row_pointer[0] = &image_buffer[cinfo.next_scanline * row_stride];
