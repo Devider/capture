@@ -13,7 +13,7 @@ static const char short_options[] = "f:d:po:";
 capture cap;
 
 static const struct option long_options[] =
-{{ "interface", required_argument, NULL, 'f' },
+{{ "frontend", required_argument, NULL, 'f' },
  { "device", required_argument, NULL, 'd' },
  { "out", required_argument, NULL, 'o' },
  { "help", no_argument, NULL, 'h' },

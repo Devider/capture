@@ -25,10 +25,8 @@ void refresh_image_cli() {
 static void save_image() {
 
 	if (need_to_save_image) {
-		char filename[256];
-		get_file_name(filename, cap->path);
 		if (cap->do_save_image){
-			write_JPEG_file(filename, IMG_WITGH, IMG_HEIGHT, old_buf, 50);
+			write_JPEG_file(cap->path, IMG_WITGH, IMG_HEIGHT, old_buf, 50);
 //			send_data(old_buf, IMG_WITGH*IMG_HEIGHT*BPP_RGB24);
 		}
 	}

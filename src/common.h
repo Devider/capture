@@ -27,7 +27,7 @@
 #define BPP_RGB24 3
 #define IMG_WITGH 640
 #define IMG_HEIGHT 480
-#define IMG_SIZE IMG_HEIGHT*IMG_HEIGHT*BPP_RGB24
+#define IMG_SIZE IMG_HEIGHT*IMG_WITGH*BPP_RGB24
 
 
 typedef struct _buffer {

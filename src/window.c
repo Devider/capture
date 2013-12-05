@@ -38,10 +38,9 @@ static gboolean save_image(GtkWidget *widget) {
 		char filename[100];
 		get_file_name(filename, cap->path);
 		if (cap->do_save_image){
-			write_JPEG_file(filename, IMG_WITGH, 480, old_buf, 50);
-//			send_data(old_buf, IMG_SIZE);
+//			write_JPEG_file(filename, IMG_WITGH, 480, old_buf, 50);
+			send_data(old_buf, IMG_SIZE);
 		}
-
 	}
 	need_to_save_image = FALSE;
 	return TRUE;

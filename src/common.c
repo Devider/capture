@@ -18,7 +18,7 @@ float get_diff(rgb_ptr buf_new, rgb_ptr buf_old, int length) {
 		int diff = abs((buf_new[i] - buf_old[i]));
 		total++;
 		if (diff > 25) {
-			buf_old[i + 2] = 255;
+//			buf_old[i + 2] = 255;
 			changed++;
 		}
 		i+=BPP_RGB24;
@@ -104,15 +104,16 @@ void send_data(rgb_ptr buff, size_t buff_size){
 		exit(2);
 	}
 
+	printf("Sending: %d bytes... ", IMG_SIZE);
 	int i = send(sock, buff, buff_size, 0);
-	printf("Sent: %d bytes \n", i);
+	printf("sent: %d bytes \n", i);
 	recv(sock, buf, sizeof(buf), 0);
 
 	close(sock);
 }
 
 
-void write_JPEG_file(char * filename, int image_width, int image_height,
+void write_JPEG_file(char * path, int image_width, int image_height,
 		rgb_ptr image_buffer, int quality) {
 
 	struct jpeg_compress_struct cinfo;
@@ -122,6 +123,9 @@ void write_JPEG_file(char * filename, int image_width, int image_height,
 	FILE * outfile;
 	JSAMPROW row_pointer[1];
 	int row_stride;
+
+	char filename[256];
+	get_file_name(filename, path);
 
 	cinfo.err = jpeg_std_error(&jerr);
 

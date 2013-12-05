@@ -9,7 +9,7 @@ main.o : src/main.c
 window.o:  src/window.c
 	gcc `pkg-config --cflags gtk+-3.0` -c src/window.c -O2
 all: main.o window.o vcap.o common.o console.o
-	gcc -o "soereader"  ./console.o ./libjpeg.o ./window.o ./vcap.o ./main.o ./common.o   -lpthread -lgtk-3 -ljpeg `pkg-config --libs gtk+-3.0` -Wall
+	gcc -o "soereader"  ./console.o ./window.o ./vcap.o ./main.o ./common.o   -lpthread -lgtk-3 -ljpeg `pkg-config --libs gtk+-3.0` -Wall
 clean: 
 	rm -f *.o; rm -f soereader
 	rm *.jpg 
