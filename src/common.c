@@ -4,6 +4,29 @@
 #include <netinet/in.h>
 #include "common.h"
 
+static capture* cap;
+static iocfg* io_cfg;
+
+capture* init_cap(char* dev_name, int witgh, int height, int bpp){
+	capture* result = malloc((sizeof(struct _capture)));
+	result-> device = dev_name;
+	result-> weigth = witgh;
+	result-> height = height;
+	result-> bpp = bpp;
+	cap = result;
+    return result;
+}
+
+iocfg* init_iocfg(char* path, char* tmp_path, int do_save_image, int do_send){
+	iocfg* result = malloc((sizeof(struct _io_cfg)));
+	result-> path = path;
+	result-> tmp_path = tmp_path;
+	result-> do_save_image = do_save_image;
+	result-> do_send = do_send;
+	io_cfg = result;
+    return result;
+}
+
 char clip(int x) {
 	return x > 255 ? 255 : x < 0 ? 0 : x;
 }
@@ -108,7 +131,7 @@ void send_data(rgb_ptr buff, size_t buff_size) {
 		exit(2);
 	}
 
-	printf("Sending: %d bytes... ", IMG_SIZE);
+	printf("Sending: %zu bytes... ", buff_size);
 	int i = send(sock, buff, buff_size, 0);
 	printf("sent: %d bytes \n", i);
 	recv(sock, buf, sizeof(buf), 0);
@@ -229,7 +252,11 @@ void process_data(rgb_ptr buf){
 	if (get_io_cfg()->do_save_image)
 		write_jpeg_file(buf, 50);
 	if (get_io_cfg()->do_send)
-		send_data(buf, IMG_WITGH*IMG_HEIGHT*BPP_RGB24);
+		send_jpeg_data(buf, 50);
 }
+
+capture* get_cap(){return cap;}
+
+iocfg* get_io_cfg(){return io_cfg;}
 
 

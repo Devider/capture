@@ -39,7 +39,7 @@ int main(int argn, char* argv[]) {
 	int idx;
 	int c;
 	int do_save = true;
-	int do_send = true;
+	int do_send = false;
 	int done_flag = 1;
 	while (done_flag) {
 		c = getopt_long(argn, argv, short_options, long_options, &idx);
@@ -75,6 +75,7 @@ int main(int argn, char* argv[]) {
 	}
 	capture *cap = init_cap(dev_name, IMG_WITGH, IMG_HEIGHT, BPP_RGB24);
 	iocfg *cfg = init_iocfg(path, tmp_path, do_save, do_send);
+
 
 	if (0 == strcmp(frontend, "gtk")) {
 		show_main_form(argn, argv);

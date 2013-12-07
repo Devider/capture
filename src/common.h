@@ -1,5 +1,5 @@
-#ifndef TYPES_H_
-#define TYPES_H_
+#ifndef COMMON_H_
+#define COMMON_H_
 
 #include <stddef.h>
 #include <stdlib.h>
@@ -16,7 +16,6 @@
 #include <setjmp.h>
 #include <stdlib.h>
 #include <jpeglib.h>
-#include "cfg.h"
 
 
 
@@ -29,6 +28,21 @@
 #define IMG_WITGH 640
 #define IMG_HEIGHT 480
 #define IMG_SIZE IMG_HEIGHT*IMG_WITGH*BPP_RGB24
+
+typedef struct _capture {
+	char* device;
+	int weigth;
+	int height;
+	int bpp;
+	void (*refresh)(void);
+} capture;
+
+typedef struct _io_cfg {
+	char* path;
+	char* tmp_path;
+	int do_save_image;
+	int do_send;
+} iocfg;
 
 
 typedef struct _buffer {
@@ -57,5 +71,9 @@ void itoa(int, char[]);
 void send_data(rgb_ptr buff, size_t buff_size);
 
 void save_image_to_file(rgb_ptr old_buf);
+
+capture* get_cap();
+
+iocfg* get_io_cfg();
 
 #endif
