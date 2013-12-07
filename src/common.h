@@ -13,9 +13,10 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <stdio.h>
-#include "jpeglib.h"
 #include <setjmp.h>
 #include <stdlib.h>
+#include <jpeglib.h>
+#include "cfg.h"
 
 
 
@@ -35,18 +36,11 @@ typedef struct _buffer {
 	size_t length;
 } buffer;
 
-typedef struct _capture {
-	char* device;
-	char* path;
-	int weigth;
-	int height;
-	int do_save_image;
-	void (*refresh)(void);
-} capture;
+void write_jpeg_file(rgb_ptr, int);
 
-void write_JPEG_file(char*, int, int, rgb_ptr, int);
+void send_jpeg_data(rgb_ptr, int);
 
-void get_file_name(char*, char*);
+void process_data(rgb_ptr);
 
 void* startcapture(void*);
 

@@ -4,8 +4,7 @@
 #include <netinet/in.h>
 #include "common.h"
 
-
-char clip(int x){
+char clip(int x) {
 	return x > 255 ? 255 : x < 0 ? 0 : x;
 }
 
@@ -72,19 +71,25 @@ void itoa(int n, char s[]) {
 	reverse(s);
 }
 
-void get_file_name(char* buf, char* path){
+static void get_tmp_file_name(char* buf, char* path) {
+	buf = strcpy(buf, path);
+	buf = strcat(buf, "tmp");
+	buf = strcat(buf, ".jpg");
+}
+
+static void get_file_name(char* buf, char* path) {
 	buf = strcpy(buf, path);
 	time_t t;
 	struct tm *timeptr;
 	t = time(NULL);
 	timeptr = localtime(&t);
 	char fn[15];
-	strftime(fn, sizeof(fn), "%Y%m%e%H%M%S", timeptr);
+	strftime(fn, sizeof(fn), "%Y%m%d%H%M%S", timeptr);
 	buf = strcat(buf, fn);
 	buf = strcat(buf, ".jpg");
 }
 
-void send_data(rgb_ptr buff, size_t buff_size){
+void send_data(rgb_ptr buff, size_t buff_size) {
 	char buf[] = "  ";
 	int sock;
 	struct sockaddr_in addr;
@@ -94,7 +99,6 @@ void send_data(rgb_ptr buff, size_t buff_size){
 		perror("socket");
 		exit(1);
 	}
-
 
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons(2351); // или любой другой порт...
@@ -113,8 +117,7 @@ void send_data(rgb_ptr buff, size_t buff_size){
 }
 
 
-void write_JPEG_file(char * path, int image_width, int image_height,
-		rgb_ptr image_buffer, int quality) {
+void write_jpeg_file(rgb_ptr image_buffer, int quality) {
 
 	struct jpeg_compress_struct cinfo;
 
@@ -125,7 +128,7 @@ void write_JPEG_file(char * path, int image_width, int image_height,
 	int row_stride;
 
 	char filename[256];
-	get_file_name(filename, path);
+	get_file_name(filename, get_io_cfg()->path);
 
 	cinfo.err = jpeg_std_error(&jerr);
 
@@ -137,8 +140,8 @@ void write_JPEG_file(char * path, int image_width, int image_height,
 	}
 	jpeg_stdio_dest(&cinfo, outfile);
 
-	cinfo.image_width = image_width;
-	cinfo.image_height = image_height;
+	cinfo.image_width = get_cap()-> weigth;
+	cinfo.image_height = get_cap()-> height;
 	cinfo.input_components = 3;
 	cinfo.in_color_space = JCS_RGB;
 	jpeg_set_defaults(&cinfo);
@@ -146,7 +149,7 @@ void write_JPEG_file(char * path, int image_width, int image_height,
 
 	jpeg_start_compress(&cinfo, true);
 
-	row_stride = image_width * 3;
+	row_stride = get_cap()-> weigth * 3;
 
 	while (cinfo.next_scanline < cinfo.image_height) {
 		row_pointer[0] = &image_buffer[cinfo.next_scanline * row_stride];
@@ -158,3 +161,75 @@ void write_JPEG_file(char * path, int image_width, int image_height,
 
 	jpeg_destroy_compress(&cinfo);
 }
+
+
+void send_jpeg_data(rgb_ptr image_buffer, int quality) {
+
+	struct jpeg_compress_struct cinfo;
+
+	struct jpeg_error_mgr jerr;
+
+	FILE * outfile;
+	JSAMPROW row_pointer[1];
+	int row_stride;
+
+	char filename[256];
+	get_tmp_file_name(filename, get_io_cfg()->tmp_path);
+
+
+	cinfo.err = jpeg_std_error(&jerr);
+
+	jpeg_create_compress(&cinfo);
+
+	if ((outfile = fopen(filename, "wb")) == NULL ) {
+		fprintf(stderr, "can't open %s\n", filename);
+		return;
+	}
+	jpeg_stdio_dest(&cinfo, outfile);
+
+	cinfo.image_width = get_cap()-> weigth;
+	cinfo.image_height = get_cap()-> height;
+	cinfo.input_components = 3;
+	cinfo.in_color_space = JCS_RGB;
+	jpeg_set_defaults(&cinfo);
+	jpeg_set_quality(&cinfo, quality, true);
+
+	jpeg_start_compress(&cinfo, true);
+
+	row_stride = get_cap()-> weigth * 3;
+
+	while (cinfo.next_scanline < cinfo.image_height) {
+		row_pointer[0] = &image_buffer[cinfo.next_scanline * row_stride];
+		(void) jpeg_write_scanlines(&cinfo, row_pointer, 1);
+	}
+
+	jpeg_finish_compress(&cinfo);
+	fclose(outfile);
+
+	jpeg_destroy_compress(&cinfo);
+
+	FILE* f;
+	f = fopen(filename, "r");
+	int c;
+	size_t s = 0;
+
+	char* buff = malloc(1024 * 30);
+
+	while((c = getc(f))!=EOF){
+		buff[s++]=c;
+	}
+
+	fclose(f);
+	send_data((rgb_ptr)buff, s);
+	free(buff);
+}
+
+
+void process_data(rgb_ptr buf){
+	if (get_io_cfg()->do_save_image)
+		write_jpeg_file(buf, 50);
+	if (get_io_cfg()->do_send)
+		send_data(buf, IMG_WITGH*IMG_HEIGHT*BPP_RGB24);
+}
+
+

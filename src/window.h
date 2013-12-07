@@ -7,6 +7,5 @@ void free(void*);
 rgb_ptr get_image();
 char clip(int);
 void cancel_capturing();
-void write_JPEG_file(char*, int, int, rgb_ptr, int);
-void show_main_form(int argc, char *argv[], capture c);
+void show_main_form(int argc, char *argv[]);
 

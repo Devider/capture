@@ -5,7 +5,6 @@
 static rgb_ptr old_buf = NULL;
 static pthread_t thread;
 static int need_to_save_image = 0;
-static capture *cap = NULL;
 
 void refresh_image_cli() {
 	if (!need_to_save_image) {
@@ -25,19 +24,17 @@ void refresh_image_cli() {
 static void save_image() {
 
 	if (need_to_save_image) {
-		if (cap->do_save_image){
-			write_JPEG_file(cap->path, IMG_WITGH, IMG_HEIGHT, old_buf, 50);
-//			send_data(old_buf, IMG_WITGH*IMG_HEIGHT*BPP_RGB24);
+		if (get_io_cfg()->do_save_image){
+			process_data(old_buf);
 		}
 	}
 	need_to_save_image = false;
 }
 
-void do_start_captirung_cli(capture c) {
-	cap = &c;
-	cap->refresh = refresh_image_cli;
+void do_start_captirung_cli() {
+	get_cap()->refresh = refresh_image_cli;
 
-	pthread_create(&thread, NULL, &startcapture, cap);
+	pthread_create(&thread, NULL, &startcapture, NULL);
 	while (1) {
 		sleep(1);
 		save_image();

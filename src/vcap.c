@@ -27,7 +27,7 @@ static int can_stop = 1;
 
 void* startcapture(void* dev) {
 	can_stop = 1;
-	capture* d = dev;
+	capture* d = get_cap();
 	dev_name = d->device;
 	wigth = d->weigth;
 	heigth = d->height;
