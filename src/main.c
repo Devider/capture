@@ -39,14 +39,11 @@ int main(int argn, char* argv[]) {
 	int idx;
 	int c;
 	int do_save = true;
-	int do_send = false;
+	int do_send = true;
 	int done_flag = 1;
 	while (done_flag) {
 		c = getopt_long(argn, argv, short_options, long_options, &idx);
 		switch (c) {
-		case 's':
-			frontend = optarg;
-			break;
 		case 'f':
 			frontend = optarg;
 			break;
@@ -55,6 +52,9 @@ int main(int argn, char* argv[]) {
 			break;
 		case 'o':
 			path = optarg;
+			break;
+		case 's':
+			do_send = false;
 			break;
 		case 'p':
 			do_save = false;
