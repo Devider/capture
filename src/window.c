@@ -9,12 +9,10 @@ static rgb_ptr old_buf = NULL;
 static pthread_t thread;
 static GtkWidget* start_btn;
 static int need_to_save_image = FALSE;
-static int updating_form = FALSE;
+static int blocked = false;
 
 void refresh_image_gtk() {
-	if (updating_form)
-		return;
-//	if (!need_to_save_image) {
+	if (!need_to_save_image) {
 		rgb_ptr buf = get_image();
 		if (old_buf) {
 			float diff = get_diff(buf, old_buf, IMG_WITGH * IMG_HEIGHT * 3);
@@ -23,7 +21,7 @@ void refresh_image_gtk() {
 			free(old_buf);
 		}
 		old_buf = buf;
-//	}
+	}
 }
 
 void quit(GtkWidget *widget, gpointer data) {
@@ -31,33 +29,31 @@ void quit(GtkWidget *widget, gpointer data) {
 	gtk_widget_set_sensitive(start_btn, TRUE);
 }
 
-static gboolean save_image(GtkWidget *widget) {
-
+static void check_image(GtkWidget *widget) {
+	SYNCHRONIZED_BEGIN(blocked)
 	if (need_to_save_image) {
 		if (get_io_cfg()->do_save_image){
 			process_data(old_buf);
 		}
 	}
 	need_to_save_image = FALSE;
-	return TRUE;
+	SYNCHRONIZED_END(blocked)
 }
 
-static gboolean update_form(GtkWidget *widget) {
-	updating_form = TRUE;
+static void update_form(GtkWidget *widget) {
+	SYNCHRONIZED_BEGIN(blocked)
 	GdkPixbuf* p_old_buf = gdk_pixbuf_new_from_data(old_buf, GDK_COLORSPACE_RGB,
 	FALSE, 8, IMG_WITGH, IMG_HEIGHT, IMG_WITGH * 3, NULL, NULL);
 	gtk_image_set_from_pixbuf(image_diff, p_old_buf);
 	g_object_unref(p_old_buf);
-	updating_form = FALSE;
-
-	return TRUE;
+	SYNCHRONIZED_END(blocked)
 }
 
 void start(GtkWidget *widget, gpointer data) {
 	pthread_create(&thread, NULL, &startcapture, NULL);
 	gtk_widget_set_sensitive(start_btn, FALSE);
 	g_timeout_add(100, (GSourceFunc) update_form, (gpointer) window);
-	g_timeout_add(1000, (GSourceFunc) save_image, (gpointer) window);
+	g_timeout_add(1000, (GSourceFunc) check_image, (gpointer) window);
 	sleep(1);
 }
 

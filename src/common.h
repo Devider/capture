@@ -29,6 +29,12 @@
 #define IMG_HEIGHT 480
 #define IMG_SIZE IMG_HEIGHT*IMG_WITGH*BPP_RGB24
 
+#define SYNCHRONIZED_BEGIN(blocked) if (blocked)\
+						return;\
+					 blocked = true;
+
+#define SYNCHRONIZED_END(blocked) blocked = false;
+
 typedef struct _capture {
 	char* device;
 	int weigth;
